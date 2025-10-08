@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <nav className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
@@ -30,18 +32,37 @@ const Navbar = () => {
 
         {/* Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <a
-            href="/login"
-            className="text-gray-700 hover:text-blue-600 font-medium transition "
-          >
-            Login
-          </a>
-          <a
-            href="/register"
-            className="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
-          >
-            Get Started
-          </a>
+          {user ? (
+            <>
+              <button
+                onClick={logout}
+                className="text-gray-700 hover:text-blue-600 font-medium transition"
+              >
+                Logout
+              </button>
+              <Link
+                to="/projects"
+                className="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
+              >
+                Dashboard
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-gray-700 hover:text-blue-600 font-medium transition"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -82,20 +103,43 @@ const Navbar = () => {
             <a href="#pricing" onClick={() => setMenuOpen(false)} className="hover:text-blue-600">Pricing</a>
             <a href="#contact" onClick={() => setMenuOpen(false)} className="hover:text-blue-600">Contact</a>
             <div className="flex flex-col gap-3 w-full px-6">
-              <a
-                href="/login"
-                onClick={() => setMenuOpen(false)}
-                className="border border-blue-600 text-blue-600 rounded-xl py-2 text-center hover:bg-blue-50 transition"
-              >
-                Login
-              </a>
-              <a
-                href="/register"
-                onClick={() => setMenuOpen(false)}
-                className="bg-blue-600 text-white rounded-xl py-2 text-center hover:bg-blue-700 transition"
-              >
-                Get Started
-              </a>
+              {user ? (
+                <>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMenuOpen(false);
+                    }}
+                    className="border border-blue-600 text-blue-600 rounded-xl py-2 text-center hover:bg-blue-50 transition"
+                  >
+                    Logout
+                  </button>
+                  <Link
+                    to="/projects"
+                    onClick={() => setMenuOpen(false)}
+                    className="bg-blue-600 text-white rounded-xl py-2 text-center hover:bg-blue-700 transition"
+                  >
+                    Dashboard
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="border border-blue-600 text-blue-600 rounded-xl py-2 text-center hover:bg-blue-50 transition"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setMenuOpen(false)}
+                    className="bg-blue-600 text-white rounded-xl py-2 text-center hover:bg-blue-700 transition"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

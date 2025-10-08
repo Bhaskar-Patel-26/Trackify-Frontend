@@ -1,17 +1,27 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import axios from "axios";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login data:", formData);
-    // TODO: Add auth logic
-    
+    await axios
+      .post("http://localhost:3000/api/auth/login", formData)
+      .then((response) => {
+        login(response.data);
+      })
+      .catch((error) => {
+        console.error("Login error:", error);
+      });
+    navigate("/projects");
   };
 
   return (

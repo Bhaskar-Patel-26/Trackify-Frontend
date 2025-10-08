@@ -1,12 +1,13 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import axios from "axios";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
   });
 
   const handleChange = (e) =>
@@ -14,12 +15,14 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
     console.log("Register data:", formData);
-    // TODO: Add registration logic
+    
+    axios.post("http://localhost:3000/api/auth/register", formData).then((response) => {
+      console.log("Register response:", response.data);
+      navigate("/login");
+    }).catch((error) => {
+      console.error("Register error:", error);
+    });
   };
 
   return (
@@ -71,20 +74,6 @@ const Register = () => {
               required
             />
           </div>
-
-          <div>
-            <label className="block text-gray-300 mb-2">Confirm Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="••••••••"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className="w-full bg-[#18171D] text-white border border-[#3F3F46] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 placeholder-gray-500"
-              required
-            />
-          </div>
-
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl transition cursor-pointer"
