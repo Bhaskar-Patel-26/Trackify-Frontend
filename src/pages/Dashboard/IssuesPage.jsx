@@ -1,36 +1,37 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getProjects } from "../../api/projects";
+import { getIssuesByUserId } from "../../api/issues";
 import { useAuth } from "../../context/AuthContext";
 import TabButton from "../../components/TabButton";
 
-const ProjectsPage = () => {
+const IssuesPage = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState("Open");
+
+  // ✅ useQuery hook always runs first — no conditional call
   const {
-    data: projects,
+    data: issues,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["projects"],
-    queryFn: getProjects,
+    queryKey: ["issues", user?.id],
+    queryFn: () => getIssuesByUserId(user?.id),
+    enabled: !!user,
   });
 
-  // ✅ Always call hooks before conditional returns
-  const filteredProjects = useMemo(() => {
-    if (!projects) return [];
-    if (activeTab === "Owner") {
-      return projects.filter((project) => project.ownerId === user?.id);
+  // ✅ useMemo hook also runs always
+  const filteredIssues = useMemo(() => {
+    if (!issues) return [];
+    if (activeTab === "Open") {
+      return issues.filter((issue) => issue.status === "OPEN");
+    } else if (activeTab === "Closed") {
+      return issues.filter((issue) => issue.status === "CLOSED");
+    } else {
+      return issues;
     }
-    if (activeTab === "Member") {
-      return projects.filter((project) =>
-        project.members?.some((member) => member.userId === user?.id)
-      );
-    }
-    return projects; // default for "All"
-  }, [projects, activeTab, user]);
+  }, [issues, activeTab]);
 
-  // ✅ Skeleton Loader (Dark theme)
+  // ✅ render conditions go *after* all hooks
   if (isLoading) {
     return (
       <div className="space-y-3 animate-pulse">
@@ -52,29 +53,26 @@ const ProjectsPage = () => {
     );
   }
 
-  // ✅ Error state
   if (isError) {
     return (
       <div className="flex items-center justify-center h-60 text-red-400 font-medium">
-        Failed to fetch projects. Please try again later.
+        Failed to fetch issues. Please try again later.
       </div>
     );
   }
 
-  // ✅ Main UI
   return (
-    <div className="min-h-scree text-gray-200 rounded-lg">
-      {/* Header */}
+    <div>
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-3xl font-bold text-white">Projects</h1>
+        <h1 className="text-2xl font-bold text-white">Issues</h1>
         <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition">
-          + New Project
+          + New Issue
         </button>
       </div>
 
       {/* Tabs */}
       <div className="flex space-x-2 mb-5 border-b border-gray-700 pb-2">
-        {["All", "Owner", "Member"].map((tab) => (
+        {["Open", "Closed", "All"].map((tab) => (
           <TabButton
             key={tab}
             tabName={tab}
@@ -84,21 +82,21 @@ const ProjectsPage = () => {
         ))}
       </div>
 
-      {/* Projects */}
-      {filteredProjects.length === 0 ? (
+      {filteredIssues.length === 0 ? (
         <div className="text-gray-400 text-center py-10">
-          No {activeTab.toLowerCase()} projects found.
+          No {activeTab.toLowerCase()} issues found.
         </div>
       ) : (
-        <div className="space-y-3">
-          {filteredProjects.map((project) => (
-            <div key={project.id} className="border border-gray-700 rounded-xl p-4 hover:border-blue-600 transition cursor-pointer shadow-md hover:shadow-lg" >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg text-white font-semibold mb-1">
-                  {project.name}
-                </h3>
+        <div className="space-y-2">
+          {filteredIssues.map((issue) => (
+            <div
+              key={issue.id}
+              className="border border-gray-700 rounded-xl p-3 hover:border-blue-600 transition cursor-pointer shadow-md hover:shadow-lg"
+            >
+              <div className="flex items-center justify-between space-x-3">
+                <h3 className="text-lg text-white font-semibold mb-1">{issue.title}</h3>
                 <p className="text-sm text-gray-400">
-                  Created: {new Date(project.createdAt).toLocaleDateString()}
+                  Created: {new Date(issue.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -109,4 +107,4 @@ const ProjectsPage = () => {
   );
 };
 
-export default ProjectsPage;
+export default IssuesPage;
