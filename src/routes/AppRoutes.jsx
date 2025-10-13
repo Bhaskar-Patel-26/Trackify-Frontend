@@ -8,6 +8,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import DashboardLayout from "../layouts/DashboardLayout";
 import IssuesPage from "../pages/Dashboard/IssuesPage";
+import ProjectDetailsPage from "../pages/Dashboard/ProjectDetailsPage";
+import IssueDetailsPage from "../pages/Dashboard/IssueDetailsPage";
 
 const AppRoutes = () => {
   return (
@@ -38,7 +40,9 @@ const AppRoutes = () => {
         }
       >
         <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/projects/:id" element={<ProjectDetailsPage />} />
         <Route path="/issues" element={<IssuesPage />} />
+        <Route path="/issues/:id" element={<IssueDetailsPage />} />
         <Route path="/members" element={<ProjectsPage />} />
       </Route>
     </Routes>

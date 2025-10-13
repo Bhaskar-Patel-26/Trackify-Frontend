@@ -6,8 +6,13 @@ export const getIssuesByUserId = async (userId) => {
   return response.data;
 };
 
-export const createIssue = async (issueData) => {
-  const response = await axiosClient.post("/issues", issueData);
+export const getIssuesByProjectId = async (projectId) => {
+  const response = await axiosClient.get(`/projects/${projectId}/issues`);
+  return response.data;
+};
+
+export const createIssue = async (projectId, issueData) => {
+  const response = await axiosClient.post(`/projects/${projectId}/issues`, issueData);
   return response.data;
 };
 
@@ -23,11 +28,6 @@ export const deleteIssue = async (issueId) => {
 
 export const getIssueById = async (issueId) => {
   const response = await axiosClient.get(`/issues/${issueId}`);
-  return response.data;
-};
-
-export const getIssuesByProjectId = async (projectId) => {
-  const response = await axiosClient.get(`/issues/project/${projectId}`);
   return response.data;
 };
 
