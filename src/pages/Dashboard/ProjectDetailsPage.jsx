@@ -165,9 +165,7 @@ const ProjectDetailsPage = () => {
 
       {/* Project Info */}
       <div className="bg-[#1C1F25] border border-gray-700 rounded-xl p-6 mb-6 shadow-lg">
-        <h2 className="text-xl font-semibold text-white mb-3">
-          Description
-        </h2>
+        <h2 className="text-xl font-semibold text-white mb-3">Description</h2>
         <p className="text-gray-400 mb-4">{data.description}</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
           <div>

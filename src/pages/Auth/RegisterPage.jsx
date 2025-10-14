@@ -15,10 +15,8 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Register data:", formData);
     
     axios.post("http://localhost:3000/api/auth/register", formData).then((response) => {
-      console.log("Register response:", response.data);
       navigate("/login");
     }).catch((error) => {
       console.error("Register error:", error);

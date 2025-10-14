@@ -1,6 +1,6 @@
-import { NavLink } from "react-router-dom";
-import logo from "../../assets/logo_only_img.png";
+import { Link, NavLink } from "react-router-dom";
 import { FolderKanban, ListChecks } from "lucide-react";
+import logo from "../../assets/logo_only_img.png";
 
 const links = [
   { name: "Projects", icon: <FolderKanban className="w-5 h-5" />, path: "/projects"},
@@ -10,10 +10,10 @@ const links = [
 const Sidebar = () => {
   return (
     <aside className="w-56 h-screen bg-[#1A1A22] border-r border-[#2A2A31] pt-2">
-      <div className="flex items-center justify-start mb-10 ml-4">
+      <Link to="/projects" className="flex items-center justify-start mb-10 ml-4">
         <img src={logo} alt="logo" className="w-10 h-10" />
         <span className="text-white text-2xl font-bold ml-3">Trackify</span>
-      </div>
+      </Link>
       <nav className="px-4">
         <ul className="space-y-2">
           {links.map((link) => (

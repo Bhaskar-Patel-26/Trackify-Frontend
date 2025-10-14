@@ -22,13 +22,7 @@ export const getProjectById = async (projectId) => {
 
 
 export const createProject = async (projectData) => {
-  console.log(projectData)
-  let response
-  try {
-    response = await axiosClient.post("/projects", projectData);
-  } catch (error) {
-    console.log(error)
-  }
+  const response = await axiosClient.post("/projects", projectData);
   return response.data;
 };
 

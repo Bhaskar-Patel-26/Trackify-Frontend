@@ -6,13 +6,14 @@ import { getIssueById, updateIssue } from "../../api/issues";
 import { getProjectMembers } from "../../api/projects";
 import Modal from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
-import { getComments } from "../../api/comments";
+import { createComment, getComments } from "../../api/comments";
 
 const IssueDetailsPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  const [comment, setComment] = useState({ content: "", userId: user.id });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [issueData, setIssueData] = useState({
     title: "",
@@ -50,8 +51,22 @@ const IssueDetailsPage = () => {
     },
   });
 
+  const { mutate: updateIssueStatusMutation } = useMutation({
+    mutationFn: () => updateIssue(id, {...issueData, status: "CLOSED"}),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["issueDetails", id]);
+    },
+  })
+
+  const { mutate: createCommentMutation } = useMutation({
+    mutationFn: () => createComment(id, comment),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["issueDetails", id]);
+      setComment({ content: "", userId: user.id });
+    },
+  });
+
   useEffect(() => {
-    console.log(comments);
     if (issue) {
       setIssueData({
         title: issue.title,
@@ -71,10 +86,25 @@ const IssueDetailsPage = () => {
     setIssueData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  const handleCommentChange = (e) => {
+    const { name, value } = e.target;
+    setComment((prevData) => ({ ...prevData, [name]: value }));
+  };
+
   const handleUpdateIssue = (e) => {
     e.preventDefault();
     updateIssueMutation();
   };
+
+  const handleCommentSubmit = (e) => {
+    e.preventDefault();
+    createCommentMutation();
+  };
+
+  const handleCloseIssue = (e) => {
+    e.preventDefault();
+    updateIssueStatusMutation();
+  }
 
   if (isLoading) {
     return (
@@ -177,9 +207,13 @@ const IssueDetailsPage = () => {
         </div>
       </div>
 
+      {/* Comments */}
       <div className="bg-[#1C1F25] border border-gray-700 rounded-xl p-6 mb-6 shadow-lg">
         <h2 className="text-xl font-semibold text-white mb-3">Comments</h2>
-        {comments.map((comment, idx) => (
+        {comments && comments.length === 0 && (
+          <p className="text-gray-400">No comments yet</p>
+        )}
+        {comments && comments.map((comment, idx) => (
           <div key={idx} className="mb-5 border-b border-gray-500 pb-2">
             <div className="flex items-center mb-2">
               <span className="font-semibold text-gray-300 mr-2">
@@ -193,6 +227,34 @@ const IssueDetailsPage = () => {
             <p className="text-gray-400">{comment.author.role}</p>
           </div>
         ))}
+      </div>
+
+      {/* Add Comment */}
+      <div className="bg-[#1C1F25] border border-gray-700 rounded-xl p-6 mb-6 shadow-lg">
+        <h2 className="text-xl font-semibold text-white mb-3">Add Comments</h2>
+        <form onSubmit={handleCommentSubmit}>
+          <div className="mb-4">
+            <textarea
+              id="content"
+              name="content"
+              rows="3"
+              value={comment.content}
+              onChange={handleCommentChange}
+              placeholder="Enter your comment..."
+              required
+              className="w-full bg-[#2A2D36] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <button type="submit" className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">
+              Comment
+            </button>
+            <button type="button" onClick={handleCloseIssue} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">
+              Close Issue
+            </button>
+          </div>
+        </form>
       </div>
 
       <Modal
@@ -254,6 +316,7 @@ const IssueDetailsPage = () => {
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
                 <option value="HIGH">High</option>
+                <option value="CRITICAL">Critical</option>
               </select>
             </div>
             <div className="mb-4">
@@ -273,7 +336,8 @@ const IssueDetailsPage = () => {
               >
                 <option value="OPEN">Open</option>
                 <option value="IN_PROGRESS">In Progress</option>
-                <option value="DONE">Done</option>
+                <option value="IN_REVIEW">In Review</option>
+                <option value="CLOSED">Closed</option>
               </select>
             </div>
           </div>
