@@ -1,12 +1,12 @@
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import Navbar from "./components/Navbar";
 import AppRoutes from "./routes/AppRoutes";
-
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer />
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

@@ -7,6 +7,7 @@ import { getProjectMembers } from "../../api/projects";
 import Modal from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
 import { createComment, getComments } from "../../api/comments";
+import { toast } from "react-toastify";
 
 const IssueDetailsPage = () => {
   const { id } = useParams();
@@ -58,6 +59,13 @@ const IssueDetailsPage = () => {
     },
   })
 
+  const { mutate: updateIssueReopenMutation } = useMutation({
+    mutationFn: () => updateIssue(id, {...issueData, status: "OPEN"}),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["issueDetails", id]);
+    },
+  })
+
   const { mutate: createCommentMutation } = useMutation({
     mutationFn: () => createComment(id, comment),
     onSuccess: () => {
@@ -94,16 +102,25 @@ const IssueDetailsPage = () => {
   const handleUpdateIssue = (e) => {
     e.preventDefault();
     updateIssueMutation();
+    toast.success("Issue updated successfully!");
   };
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
     createCommentMutation();
+    toast.success("Comment added successfully!");
   };
 
   const handleCloseIssue = (e) => {
     e.preventDefault();
     updateIssueStatusMutation();
+    toast.success("Issue closed successfully!");
+  }
+
+  const handleReopenIssue = (e) => {
+    e.preventDefault();
+    updateIssueReopenMutation();
+    toast.success("Issue reopened successfully!");
   }
 
   if (isLoading) {
@@ -250,8 +267,8 @@ const IssueDetailsPage = () => {
             <button type="submit" className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">
               Comment
             </button>
-            <button type="button" onClick={handleCloseIssue} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">
-              Close Issue
+            <button type="button" onClick={issue.status === "CLOSED" ? handleReopenIssue : handleCloseIssue } className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">
+              {issue.status.replace("_", " ") === "CLOSED" ? "Reopen" : "Close"} Issue
             </button>
           </div>
         </form>

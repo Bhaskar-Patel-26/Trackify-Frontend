@@ -3,12 +3,14 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 
-import { getProjectById, updateProject } from "../../api/projects";
+import { addProjectMember,getProjectById, updateProject } from "../../api/projects";
 import { createIssue, getIssuesByProjectId } from "../../api/issues";
 import { getProjectMembers } from "../../api/projects";
+import { getAllUsers } from "../../api/users";
 import TabButton from "../../components/TabButton";
 import Modal from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 
 const ProjectDetailsPage = () => {
   const { id } = useParams();
@@ -18,6 +20,7 @@ const ProjectDetailsPage = () => {
   const [activeTab, setActiveTab] = useState("Issues");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   const [projectData, setProjectData] = useState({ name: "", description: "" });
   const [issueData, setIssueData] = useState({
     title: "",
@@ -26,6 +29,10 @@ const ProjectDetailsPage = () => {
     status: "",
     assigneeId: "",
     reporterId: user.id,
+  });
+  const [memberData, setMemberData] = useState({
+    userId: "",
+    role: "",
   });
 
   const { data, isLoading, isError } = useQuery({
@@ -52,6 +59,11 @@ const ProjectDetailsPage = () => {
     queryFn: () => getProjectMembers(id),
   });
 
+  const {data: users, isLoading: usersLoading, isError: usersError} = useQuery({
+    queryKey: ["allUsers"],
+    queryFn: () => getAllUsers(),
+  })
+
   const { mutate: updateProjectMutation } = useMutation({
     mutationFn: () => updateProject(id, projectData),
     onSuccess: () => {
@@ -76,6 +88,15 @@ const ProjectDetailsPage = () => {
     },
   });
 
+  const {mutate: addMemberMutation} = useMutation({
+    mutationFn: () => addProjectMember(id, memberData),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["projectMembers", id]);
+      setMemberData({ userId: "", role: "" });
+      closeMemberModal();
+    }
+  })
+
   useEffect(() => {
     if (data) {
       setProjectData({ name: data.name, description: data.description });
@@ -88,6 +109,9 @@ const ProjectDetailsPage = () => {
   const openEditModal = () => setIsEditModalOpen(true);
   const closeEditModal = () => setIsEditModalOpen(false);
 
+  const openMemberModal = () => setIsMemberModalOpen(true);
+  const closeMemberModal = () => setIsMemberModalOpen(false);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProjectData((prevData) => ({ ...prevData, [name]: value }));
@@ -98,15 +122,29 @@ const ProjectDetailsPage = () => {
     setIssueData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  const handleMemberInputChange = (e) => {
+    const { name, value } = e.target;
+    setMemberData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
   const handleUpdateProject = (e) => {
     e.preventDefault();
     updateProjectMutation();
+    closeEditModal();
+    toast.success("Project updated successfully!");
   };
 
   const handleCreateIssue = (e) => {
     e.preventDefault();
     createIssueMutation();
+    toast.success("Issue created successfully!");
   };
+
+  const handleAddMember = (e) => {
+    e.preventDefault();
+    addMemberMutation();
+    toast.success("Project member added successfully!");
+  }
 
   // ✅ Skeleton Loader (Dark theme)
   if (isLoading) {
@@ -152,13 +190,6 @@ const ProjectDetailsPage = () => {
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer"
           >
             Edit Project
-          </button>
-          <button
-            onClick={openModal}
-            disabled={!members || members.length === 0}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer"
-          >
-            New Issue
           </button>
         </div>
       </div>
@@ -215,6 +246,10 @@ const ProjectDetailsPage = () => {
             )}
             {projectIssues && (
               <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white mb-4">Project Issues</h3>
+                  <button onClick={openModal} disabled={!members || members.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">Add Issue</button>
+                </div>
                 {projectIssues.map((issue) => (
                   <Link key={issue.id} to={`/issues/${issue.id}`}>
                     <div
@@ -245,6 +280,7 @@ const ProjectDetailsPage = () => {
             )}
           </div>
         )}
+
         {activeTab === "Members" && (
           <div>
             {membersLoading && (
@@ -259,6 +295,13 @@ const ProjectDetailsPage = () => {
             )}
             {members && (
               <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white mb-4">
+                    Project Members
+                  </h3>
+                  <button onClick={openMemberModal} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">Add Member</button>
+                </div>
+
                 {members.map((member) => (
                   <div
                     key={member.id}
@@ -447,15 +490,70 @@ const ProjectDetailsPage = () => {
             <button
               type="button"
               onClick={closeEditModal}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow transition"
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer"
             >
               Save Changes
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Add Member Modal */}
+      <Modal isOpen={isMemberModalOpen} onClose={closeMemberModal} title="Add Project Member">
+        <form onSubmit={handleAddMember}>
+          <div className="mb-4">
+            <label htmlFor="userId" className="block text-sm font-medium text-gray-300 mb-1">User</label>
+            <select
+              id="user"
+              name="userId"
+              value={memberData.userId}
+              onChange={handleMemberInputChange}
+              required
+              className="w-full bg-[#2A2D36] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select User</option>
+              {users && users.filter(user => !members.some(member => member.userId === user.id)).map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-1">Role</label>
+            <select
+              id="role"
+              name="role"
+              value={memberData.role}
+              onChange={handleMemberInputChange}
+              required
+              className="w-full bg-[#2A2D36] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Role</option>
+              <option value="ADMIN">ADMIN</option>
+              <option value="MEMBER">MEMBER</option>
+              <option value="VIEWER">VIEWER</option>
+            </select>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={closeMemberModal}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer"
+            >
+              Add Member
             </button>
           </div>
         </form>

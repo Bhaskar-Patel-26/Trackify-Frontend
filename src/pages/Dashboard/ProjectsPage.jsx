@@ -9,6 +9,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import TabButton from "../../components/TabButton";
 import Modal from "../../components/Modal";
+import { toast } from "react-toastify";
 
 const ProjectsPage = () => {
   const { user } = useAuth();
@@ -47,6 +48,7 @@ const ProjectsPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     createProjectMutation.mutate(newProject);
+    toast.success("Project created successfully!");
   };
 
   // ✅ Always call hooks before conditional returns
@@ -100,7 +102,7 @@ const ProjectsPage = () => {
         <h1 className="text-3xl font-bold text-white">Projects</h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer"
         >
           + New Project
         </button>
@@ -178,13 +180,13 @@ const ProjectsPage = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 bg-gray-700 rounded-lg text-gray-300 hover:bg-gray-600"
+              className="px-4 py-2 bg-gray-700 rounded-lg text-gray-300 hover:bg-gray-600 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white cursor-pointer"
               disabled={createProjectMutation.isPending}
             >
               {createProjectMutation.isPending ? "Creating..." : "Create"}

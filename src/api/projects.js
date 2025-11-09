@@ -35,3 +35,11 @@ export const getProjectMembers = async (projectId) => {
   const response = await axiosClient.get(`/projects/${projectId}/members`);
   return response.data;
 };
+
+export const addProjectMember = async (projectId, memberData) => {
+  const token = localStorage.getItem("token");
+  const response = await axiosClient.post(`/projects/${projectId}/members`, memberData, {
+    headers: { Authorization: `Bearer ${token}`}
+  });
+  return response.data;
+};
