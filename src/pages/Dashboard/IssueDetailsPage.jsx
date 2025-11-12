@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 
 import { getIssueById, updateIssue } from "../../api/issues";
@@ -7,13 +7,17 @@ import { getProjectMembers } from "../../api/projects";
 import Modal from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
 import { createComment, getComments } from "../../api/comments";
+import { getAttachments, uploadAttachment } from "../../api/attachment";
 import { toast } from "react-toastify";
+import FileUploder from "../../components/FileUploder";
+import { Paperclip } from "lucide-react";
 
 const IssueDetailsPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  const [selectedFile, setSelectedFile] = useState(null);
   const [comment, setComment] = useState({ content: "", userId: user.id });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [issueData, setIssueData] = useState({
@@ -70,7 +74,26 @@ const IssueDetailsPage = () => {
     mutationFn: () => createComment(id, comment),
     onSuccess: () => {
       queryClient.invalidateQueries(["issueDetails", id]);
+      queryClient.invalidateQueries(["comments"]);
       setComment({ content: "", userId: user.id });
+    },
+  });
+
+
+  const { data: attachments } = useQuery({
+    queryKey: ["attachments", id],
+    queryFn: () => getAttachments(id),
+  });
+
+  const { mutate: uploadAttachmentMutation } = useMutation({
+    mutationFn: () => uploadAttachment(id, selectedFile, user.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["issueDetails", id]);
+      setSelectedFile(null);
+      toast.success("File uploaded successfully!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to upload file.");
     },
   });
 
@@ -107,8 +130,18 @@ const IssueDetailsPage = () => {
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
-    createCommentMutation();
-    toast.success("Comment added successfully!");
+    if (!selectedFile && !comment.content) {
+      toast.error("Please add a comment or select a file to upload.");
+      return;
+    }
+
+    if (selectedFile) {
+      uploadAttachmentMutation();
+    }
+    if (comment.content) {
+      createCommentMutation();
+      toast.success("Comment added successfully!");
+    }
   };
 
   const handleCloseIssue = (e) => {
@@ -224,6 +257,29 @@ const IssueDetailsPage = () => {
         </div>
       </div>
 
+      {/* Attachments */}
+      {attachments && attachments.length > 0 && (
+        <div className="bg-[#1C1F25] border border-gray-700 rounded-xl p-6 mb-6 shadow-lg">
+          <h2 className="text-xl font-semibold text-white mb-3">Attachments</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {attachments.map((attachment) => (
+              <a
+                key={attachment.id}
+                href={attachment.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-[#2A2D36] p-3 rounded-lg flex items-center gap-3 hover:bg-gray-700 transition"
+              >
+                <Paperclip className="w-5 h-5 text-gray-400" />
+                <span className="text-sm text-gray-300 truncate">
+                  {attachment.fileUrl.match(/[^/]+(?=\?.*$|$)/)[0]}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Comments */}
       <div className="bg-[#1C1F25] border border-gray-700 rounded-xl p-6 mb-6 shadow-lg">
         <h2 className="text-xl font-semibold text-white mb-3">Comments</h2>
@@ -258,14 +314,19 @@ const IssueDetailsPage = () => {
               value={comment.content}
               onChange={handleCommentChange}
               placeholder="Enter your comment..."
-              required
               className="w-full bg-[#2A2D36] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             ></textarea>
+
+            <FileUploder
+              selectedFile={selectedFile}
+              onFileSelect={setSelectedFile}
+              onRemoveFile={() => setSelectedFile(null)}
+            />
           </div>
 
           <div className="flex justify-end space-x-2">
             <button type="submit" className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">
-              Comment
+              {selectedFile || comment.content ? "Submit" : "Add Comment or Attachment"}
             </button>
             <button type="button" onClick={issue.status === "CLOSED" ? handleReopenIssue : handleCloseIssue } className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">
               {issue.status.replace("_", " ") === "CLOSED" ? "Reopen" : "Close"} Issue

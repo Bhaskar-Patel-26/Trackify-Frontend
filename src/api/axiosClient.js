@@ -5,8 +5,7 @@ const axiosClient = axios.create({
   withCredentials: true,
 });
 
-axios.interceptors.request.use((config) => {
-  // You can add authorization headers or other custom logic here
+axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
