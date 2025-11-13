@@ -146,6 +146,10 @@ const ProjectDetailsPage = () => {
     toast.success("Project member added successfully!");
   }
 
+  // ✅ Determine current user's role in the project
+  const currentUserRole = members?.find(member => member.userId === user.id)?.role || "";
+  const isCurrentUserMember = members?.some(member => member.userId === user.id) || false;
+
   // ✅ Skeleton Loader (Dark theme)
   if (isLoading) {
     return (
@@ -248,7 +252,7 @@ const ProjectDetailsPage = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-white mb-4">Project Issues</h3>
-                  <button onClick={openModal} disabled={!members || members.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">Add Issue</button>
+                  <button onClick={openModal} disabled={!members || members.length === 0} className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer ${!isCurrentUserMember ? 'hidden' : ''}`}>Add Issue</button>
                 </div>
                 {projectIssues.map((issue) => (
                   <Link key={issue.id} to={`/issues/${issue.id}`}>
@@ -299,7 +303,7 @@ const ProjectDetailsPage = () => {
                   <h3 className="text-lg font-semibold text-white mb-4">
                     Project Members
                   </h3>
-                  <button onClick={openMemberModal} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer">Add Member</button>
+                  <button onClick={openMemberModal} className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition cursor-pointer ${currentUserRole !== "ADMIN" ? "hidden" : ""}`}>Add Member</button>
                 </div>
 
                 {members.map((member) => (
@@ -518,7 +522,7 @@ const ProjectDetailsPage = () => {
               className="w-full bg-[#2A2D36] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select User</option>
-              {users && users.filter(user => !members.some(member => member.userId === user.id)).map((user) => (
+              {users && users.filter(user => !members?.some(member => member.userId === user.id)).map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.name}
                   </option>

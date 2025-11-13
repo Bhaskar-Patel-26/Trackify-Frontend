@@ -1,4 +1,4 @@
-import { Bell, CircleUserRound, LogOut, User, UserRoundPen } from "lucide-react";
+import { Bell, CircleUserRound, LogOut, User, UserRoundPen, Menu } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
 import Modal from "../../components/Modal";
@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import { updateUser } from "../../api/users";
 
-const Navbar = () => {
+const Navbar = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isEditUserModalOpen, setIseditUserModalOpen] = useState(false);
@@ -34,7 +34,12 @@ const Navbar = () => {
 
   return (
     <header className="flex justify-between items-center px-6 py-3 border-b border-[#2A2A31] bg-[#18171D] shadow-sm">
-      <div className="text-xl font-semibold text-white">Dashboard</div>
+      <div className="flex items-center">
+        <button onClick={toggleSidebar} className="text-gray-300 hover:text-white mr-4">
+          <Menu className="w-6 h-6" />
+        </button>
+        <div className="text-xl font-semibold text-white">Dashboard</div>
+      </div>
 
       {/* Right Section */}
       <div className="flex items-center space-x-5">
