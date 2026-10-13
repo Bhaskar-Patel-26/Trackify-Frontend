@@ -58,7 +58,7 @@ const DashboardPage = () => {
   const recentIssues = issues.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5);
 
   return (
-    <div style={{ padding: '20px' }}>
+    <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <Scorecard title="Total Projects" value={projects.length} icon={<FolderKanban className="w-8 h-8 text-blue-500" />} />
         <Scorecard title="Total Issues" value={issues.length} icon={<ListChecks className="w-8 h-8 text-green-500" />} />
@@ -302,7 +302,7 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -11,6 +11,7 @@ import IssuesPage from "../pages/Dashboard/IssuesPage";
 import ProjectDetailsPage from "../pages/Dashboard/ProjectDetailsPage";
 import IssueDetailsPage from "../pages/Dashboard/IssueDetailsPage";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
+import KanbanBoardPage from "../pages/Dashboard/KanbanBoardPage";
 
 const AppRoutes = () => {
   return (
@@ -47,6 +48,7 @@ const AppRoutes = () => {
         <Route path="/members" element={<ProjectsPage />} />
 
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/issues-board" element={<KanbanBoardPage />} />
       </Route>
     </Routes>
   );

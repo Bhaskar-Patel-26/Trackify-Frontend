@@ -1,18 +1,19 @@
 import { Link, NavLink } from "react-router-dom";
-import { FolderKanban, LayoutDashboardIcon, ListChecks } from "lucide-react";
+import { FolderKanban, Kanban, LayoutDashboardIcon, ListChecks } from "lucide-react";
 import logo from "../../assets/logo_only_img.png";
 
 const links = [
   { name: "Projects", icon: <FolderKanban className="w-5 h-5" />, path: "/projects"},
   { name: "Issues", icon: <ListChecks className="w-5 h-5" />, path: "/issues" },
   { name: "Dashboard", icon: <LayoutDashboardIcon className="w-5 h-5" />, path: "/dashboard" },
+  { name: "Issues Board", icon: <Kanban className="w-5 h-5" />, path: "/issues-board" },
 ];
 
 const Sidebar = ({ isSidebarOpen }) => {
   return (
     <aside
       className={`h-screen bg-[#1A1A22] border-r border-[#2A2A31] pt-2 transition-all duration-300 ${
-        isSidebarOpen ? "w-56" : "w-20"
+        isSidebarOpen ? "w-45" : "w-15"
       }`}
     >
       <Link
@@ -31,7 +32,7 @@ const Sidebar = ({ isSidebarOpen }) => {
               <NavLink
                 to={link.path}
                 className={({ isActive }) =>
-                  `flex items-center space-x-2 p-2 rounded-lg font-medium transition-all duration-200 ${
+                  `flex items-center space-x-2 p-2 rounded-lg font-medium transition-all duration-200 w-40 ${
                     isActive
                       ? "bg-blue-600 text-white"
                       : "text-gray-300 hover:bg-[#24242D] hover:text-blue-400"
